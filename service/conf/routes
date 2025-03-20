@@ -10,7 +10,9 @@ GET  /:service/health                           @controllers.health.HealthContro
 # CERT  APIs
 POST  /certs/v1/registry/add                          @controllers.CertificateController.add(request: play.mvc.Http.Request)
 POST  /certs/v2/registry/add                          @controllers.CertificateController.addV2(request: play.mvc.Http.Request)
+POST  /certs/v3/registry/add                          @controllers.CertificateController.addV3(request: play.mvc.Http.Request)
 POST /certs/v1/registry/validate                      @controllers.CertificateController.validate(request: play.mvc.Http.Request)
+POST /certs/v2/registry/validate                      @controllers.CertificateController.validateV2(request: play.mvc.Http.Request)
 POST  /certs/v1/registry/download                     @controllers.CertificateController.download(request: play.mvc.Http.Request)
 GET  /certs/v2/registry/download/:id                     @controllers.CertificateController.downloadV2(id:String, request: play.mvc.Http.Request)
 POST  /certs/v1/registry/verify                       @controllers.CertificateController.verify(request: play.mvc.Http.Request)

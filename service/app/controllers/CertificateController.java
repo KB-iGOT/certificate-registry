@@ -61,6 +61,24 @@ public class CertificateController extends BaseController {
     }
 
     /**
+     * this action method will be called for adding certificate
+     * @return CompletionStage of Result
+     */
+    public CompletionStage<Result> addV3(Http.Request httpRequest)
+    {
+        IRequestValidator requestValidator=new CertAddRequestValidator();
+        return handleRequest(certificationActorRef, httpRequest,
+                request -> {
+                    Request req = (Request) request;
+                    Map<String, Object> context = new HashMap<>();
+                    context.put(JsonKeys.VERSION, JsonKeys.VERSION_3);
+                    req.setContext(context);
+                    requestValidator.validate(req);
+                    return null;
+                }, JsonKeys.CERT_ADD_V3);
+    }
+
+    /**
      * this action method will be called for verifying certificate
      * @return CompletionStage of Result
      */
@@ -73,6 +91,21 @@ public class CertificateController extends BaseController {
                 requestValidator.validate(req);
                 return null;
             }, JsonKeys.CERT_VALIDATE);
+    }
+
+    /**
+     * this action method will be called for verifying certificate
+     * @return CompletionStage of Result
+     */
+    public CompletionStage<Result> validateV2(Http.Request httpRequest)
+    {
+        IRequestValidator requestValidator=new CertValidateRequestValidator();
+        return handleRequest(certificationActorRef, httpRequest,
+                request -> {
+                    Request req = (Request) request;
+                    requestValidator.validate(req);
+                    return null;
+                }, JsonKeys.CERT_VALIDATE_V2);
     }
 
     /**

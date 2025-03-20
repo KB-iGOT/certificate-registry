@@ -17,7 +17,9 @@ public enum ActorOperations {
     SEARCH("search"),
     SEARCHV2("searchV2"),
     READ_CERT_META_DATA("readCertMetaData"),
-    DOWNLOADV2("downloadV2");
+    DOWNLOADV2("downloadV2"),
+    ADD_CERT_ES_V2("add_cert_es_v2"),
+    DELETE_CERT_CASSANDRA_V2("delete_cert_cassandra_v2");
 
     private String operation;
 

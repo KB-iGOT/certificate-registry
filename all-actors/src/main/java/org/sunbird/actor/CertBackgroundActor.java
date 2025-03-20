@@ -29,11 +29,15 @@ public class CertBackgroundActor extends BaseActor {
             case "add_cert_es":
                 add(request);
                 break;
-
+            case "add_cert_es_v2":
+                addV2(request);
+                break;
             case "delete_cert_cassandra":
                 delete(request);
                 break;
-
+            case "delete_cert_cassandra_v2":
+                deleteV2(request);
+                break;
             default:
                 onReceiveUnsupportedMessage("CertificationActor");
         }
@@ -50,9 +54,25 @@ public class CertBackgroundActor extends BaseActor {
     }
 
 
+    private void deleteV2(Request request) throws BaseException {
+        String id = (String) request.getRequest().get(JsonKeys.ID);
+        try {
+            cassandraOperation.deleteRecord(JsonKeys.SUNBIRD, JsonKeys.CERT_REGISTRY_V2, id);
+            logger.info("Data deleted from cassandra for id " + id);
+        }catch (Exception ex){
+            logger.error("Exception occurred while deleting data from cert_registry for id : "+id,ex);
+        }
+    }
+
     private void add(Request request) {
         Map<String,Object> certAddReqMap = (Map<String, Object>) request.getRequest().get(JsonKeys.REQUEST);
         String id = (String)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.save(JsonKeys.CERT_ALIAS,(String)certAddReqMap.get(JsonKeys.ID),certAddReqMap));
+        logger.info("ES save response for id "+id);
+    }
+
+    private void addV2(Request request) {
+        Map<String,Object> certAddReqMap = (Map<String, Object>) request.getRequest().get(JsonKeys.REQUEST);
+        String id = (String)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.save(JsonKeys.CERT_ALIAS_V2,(String)certAddReqMap.get(JsonKeys.ID),certAddReqMap));
         logger.info("ES save response for id "+id);
     }
 }

@@ -18,6 +18,7 @@ import org.sunbird.CertVars;
 import org.sunbird.JsonKeys;
 import org.sunbird.RegistryCredential;
 import org.sunbird.builders.Certificate;
+import org.sunbird.builders.CertificateV2;
 import org.sunbird.builders.Recipient;
 import org.sunbird.message.IResponseMessage;
 import org.sunbird.message.Localizer;
@@ -76,8 +77,26 @@ public class CertsServiceImpl implements ICertService {
         return (String)certAddReqMap.get(JsonKeys.ID);
     }
 
+    @Override
+    public String addV3(Request request, ActorRef certBackgroundActorRef) throws BaseException {
+        Map<String,Object> reqMap = request.getRequest();
+        if(isPresentRecipientIdAndCertId(request)){
+            validateCertAndRecipientId(reqMap);
+            deleteOldCertificateV2((String) reqMap.get(JsonKeys.OLD_ID),certBackgroundActorRef);
+        }
+        Map<String, Object> certAddReqMap = request.getRequest();
+        assureUniqueCertId((String) certAddReqMap.get(JsonKeys.ID));
+        processRecordV2(certAddReqMap,(String) request.getContext().get(JsonKeys.VERSION), certBackgroundActorRef);
+        logger.info("CertsServiceImpl:add:record successfully processed with request:"+certAddReqMap.get(JsonKeys.ID));
+        return (String)certAddReqMap.get(JsonKeys.ID);
+    }
+
     private void deleteOldCertificate(String oldCertId, ActorRef certBackgroundActorRef) throws BaseException {
         CertificateUtil.deleteRecord(oldCertId, certBackgroundActorRef);
+    }
+
+    private void deleteOldCertificateV2(String oldCertId, ActorRef certBackgroundActorRef) throws BaseException {
+        CertificateUtil.deleteRecordV2(oldCertId, certBackgroundActorRef);
     }
 
     private void validateCertAndRecipientId(Map<String,Object> reqMap) throws BaseException {
@@ -126,6 +145,11 @@ public class CertsServiceImpl implements ICertService {
         Map<String,Object>recordMap= requestMapper.convertValue(certificate,Map.class);
         return CertificateUtil.insertRecord(recordMap, certBackgroundActorRef);
     }
+    private Response processRecordV2(Map<String, Object> certReqAddMap, String version, ActorRef certBackgroundActorRef) throws BaseException {
+        CertificateV2 certificate=getCertificateV2(certReqAddMap);
+        Map<String,Object>recordMap= requestMapper.convertValue(certificate,Map.class);
+        return CertificateUtil.insertRecordV2(recordMap, certBackgroundActorRef);
+    }
     private Certificate getCertificate(Map<String, Object> certReqAddMap) {
         Certificate certificate = new Certificate.Builder()
                 .setId((String) certReqAddMap.get(JsonKeys.ID))
@@ -140,6 +164,22 @@ public class CertsServiceImpl implements ICertService {
         logger.info("CertsServiceImpl:getCertificate:certificate object formed.");
         return certificate;
     }
+
+    private CertificateV2 getCertificateV2(Map<String, Object> certReqAddMap) {
+        CertificateV2 certificate = new CertificateV2.Builder()
+                .setId((String) certReqAddMap.get(JsonKeys.ID))
+                .setData(getData(certReqAddMap))
+                .setRevoked(false)
+                .setAccessCode((String)certReqAddMap.get(JsonKeys.ACCESS_CODE))
+                .setRecipient(getCompositeReciepientObject(certReqAddMap))
+                .setRelated((Map)certReqAddMap.get(JsonKeys.RELATED))
+                .setReason((String)certReqAddMap.get(JsonKeys.REASON))
+                .setQrCodeData((Map)certReqAddMap.get(JsonKeys.QR_CODE_DATA))
+                .build();
+        logger.info("CertsServiceImpl:getCertificate:certificate object formed.");
+        return certificate;
+    }
+
     private Recipient getCompositeReciepientObject(Map<String, Object> certAddRequestMap) {
         Recipient recipient = new Recipient.Builder()
                 .setName((String) certAddRequestMap.get(JsonKeys.RECIPIENT_NAME))
@@ -159,6 +199,35 @@ public class CertsServiceImpl implements ICertService {
         String certificatedId = (String) valCertReq.get(JsonKeys.CERT_ID);
         String accessCode = (String) valCertReq.get(JsonKeys.ACCESS_CODE);
         Response certResponse = CertificateUtil.getCertRecordByID(certificatedId);
+        List<Map<String, Object>> resultList = (List<Map<String, Object>>) certResponse.getResult().get(JsonKeys.RESPONSE);
+        if (CollectionUtils.isNotEmpty(resultList) && MapUtils.isNotEmpty(resultList.get(0)) &&
+                StringUtils.equalsIgnoreCase((String) resultList.get(0).get(JsonKeys.ACCESS_CODE), accessCode)) {
+            Map<String, Object> result = resultList.get(0);
+            Map<String,Object>responseMap=new HashMap<>();
+            try {
+                responseMap.put(JsonKeys.RELATED, requestMapper.readValue((String) result.get(JsonKeys.RELATED), new TypeReference<Map<String, Object>>(){}));
+                responseMap.put(JsonKeys.JSON, requestMapper.readValue((String) result.get(JsonKeys.DATA), new TypeReference<Map<String, Object>>(){}));
+            } catch (Exception e) {
+                logger.error("CertsServiceImpl:validate:exception occurred:" + e);
+                throw new BaseException(IResponseMessage.INTERNAL_ERROR, getLocalizedMessage(IResponseMessage.INTERNAL_ERROR, null), ResponseCode.SERVER_ERROR.getCode());
+            }
+            Response response=new Response();
+            response.put(JsonKeys.RESPONSE,responseMap);
+            return response;
+        }
+        else{
+            logger.error("NO valid record found with provided certificate Id and accessCode respectively:"+certificatedId+":"+accessCode);
+            throw new BaseException(IResponseMessage.INVALID_REQUESTED_DATA, MessageFormat.format(getLocalizedMessage(IResponseMessage.INVALID_ID_PROVIDED,null),certificatedId,accessCode), ResponseCode.CLIENT_ERROR.getCode());
+        }
+
+    }
+
+    @Override
+    public Response validateV2(Request request) throws BaseException {
+        Map<String,Object> valCertReq = request.getRequest();
+        String certificatedId = (String) valCertReq.get(JsonKeys.CERT_ID);
+        String accessCode = (String) valCertReq.get(JsonKeys.ACCESS_CODE);
+        Response certResponse = CertificateUtil.getCertRecordByIDV2(certificatedId);
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) certResponse.getResult().get(JsonKeys.RESPONSE);
         if (CollectionUtils.isNotEmpty(resultList) && MapUtils.isNotEmpty(resultList.get(0)) &&
                 StringUtils.equalsIgnoreCase((String) resultList.get(0).get(JsonKeys.ACCESS_CODE), accessCode)) {

@@ -62,12 +62,30 @@ public class CertificateUtil {
         return cassandraOperation.getRecordById(JsonKeys.SUNBIRD,JsonKeys.CERT_REGISTRY,id);
     }
 
+    public static Response getCertRecordByIDV2(String id) throws BaseException {
+        return cassandraOperation.getRecordById(JsonKeys.SUNBIRD,JsonKeys.CERT_REGISTRY_V2,id);
+    }
+
     public static Boolean deleteRecord(String id, ActorRef certBackgroundActorRef) throws BaseException {
         Boolean bool = (Boolean)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.delete(JsonKeys.CERT_ALIAS,id));
         logger.info("Data deleted from ES for id "+id);
         //Delete the data from cassandra
         Request req = new Request();
         req.setOperation(ActorOperations.DELETE_CERT_CASSANDRA.getOperation());
+        req.getRequest().put(JsonKeys.ID,id);
+        RequestParams params = new RequestParams();
+        params.setMsgid(MDC.get(JsonKeys.REQUEST_MESSAGE_ID));
+        req.setParams(params);
+        certBackgroundActorRef.tell(req, ActorRef.noSender());
+        return bool;
+    }
+
+    public static Boolean deleteRecordV2(String id, ActorRef certBackgroundActorRef) throws BaseException {
+        Boolean bool = (Boolean)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.delete(JsonKeys.CERT_ALIAS_V2,id));
+        logger.info("Data deleted from ES for id "+id);
+        //Delete the data from cassandra
+        Request req = new Request();
+        req.setOperation(ActorOperations.DELETE_CERT_CASSANDRA_V2.getOperation());
         req.getRequest().put(JsonKeys.ID,id);
         RequestParams params = new RequestParams();
         params.setMsgid(MDC.get(JsonKeys.REQUEST_MESSAGE_ID));
@@ -113,6 +131,42 @@ public class CertificateUtil {
 
     }
 
+    public static Response insertRecordV2(Map<String,Object>certAddReqMap, ActorRef certBackgroundActorRef) throws BaseException {
+        Map<String,Object>certMap = new HashMap<>();
+        long createdAt = System.currentTimeMillis();
+        certAddReqMap.put(JsonKeys.CREATED_AT,createdAt);
+        certAddReqMap.put(JsonKeys.UPDATED_AT,null);
+        certMap.putAll(certAddReqMap);
+
+        try{
+            certMap.put(JsonKeys.CREATED_AT,new Timestamp(createdAt));
+            Map<String, Object> data = (Map<String, Object>) certAddReqMap.get(JsonKeys.DATA);
+            //We started with elastic search, The data object was the sole thing to start with. Then we added a Cassandra table.
+            //as certificate json size is now about 650 KB, due to printUri in json which is a materialised view of svg, so we should stop pushing the printUri as part data into the
+            //cassandra and ES
+            if (data.containsKey(JsonKeys.PRINT_URI)) {
+                ((Map<String, Object>) certAddReqMap.get(JsonKeys.DATA)).remove(JsonKeys.PRINT_URI);
+            }
+            certMap.put(JsonKeys.DATA,mapper.writeValueAsString(certAddReqMap.get(JsonKeys.DATA)));
+            certMap.put(JsonKeys.RELATED,mapper.writeValueAsString(certAddReqMap.get(JsonKeys.RELATED)));
+            certMap.put(JsonKeys.RECIPIENT,mapper.writeValueAsString(certAddReqMap.get(JsonKeys.RECIPIENT)));
+        } catch (Exception ex) {
+            logger.error("CertificateUtil:insertRecord: JsonProcessingException occurred.",ex);
+            throw new BaseException(IResponseMessage.INVALID_REQUESTED_DATA,getLocalizedMessage(IResponseMessage.INVALID_REQUESTED_DATA,null), ResponseCode.CLIENT_ERROR.getCode());
+        }
+        Response response = cassandraOperation.insertRecord(JsonKeys.SUNBIRD,JsonKeys.CERT_REGISTRY_V2,certMap);
+        logger.info("CertificateUtil:insertRecord: record successfully inserted with id"+certAddReqMap.get(JsonKeys.ID));
+        //index data to ES
+        Request req = new Request();
+        RequestParams params = new RequestParams();
+        params.setMsgid(MDC.get(JsonKeys.REQUEST_MESSAGE_ID));
+        req.setParams(params);
+        req.setOperation(ActorOperations.ADD_CERT_ES_V2.getOperation());
+        req.getRequest().put(JsonKeys.REQUEST,certAddReqMap);
+        certBackgroundActorRef.tell(req, ActorRef.noSender());
+        return response;
+
+    }
     public static  Map<String,Object> getCertificate(String certificateId) {
         logger.info("CertificateUtil:isIdPresent:get id to search in ES:"+certificateId);
         Map<String,Object> response = (Map)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.getDataByIdentifier(JsonKeys.CERT_ALIAS,certificateId));

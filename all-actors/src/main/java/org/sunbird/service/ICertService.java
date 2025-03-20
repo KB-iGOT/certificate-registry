@@ -20,7 +20,11 @@ public interface ICertService{
 
     String add(Request request, ActorRef certBackgroundActorRef) throws BaseException;
 
+    String addV3(Request request, ActorRef certBackgroundActorRef) throws BaseException;
+
     Response  validate(Request request) throws BaseException;
+
+    Response  validateV2(Request request) throws BaseException;
 
     Response download(Request request) throws BaseException;
 

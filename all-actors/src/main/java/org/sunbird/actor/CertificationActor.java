@@ -37,8 +37,14 @@ public class CertificationActor extends BaseActor {
             case "addV2" :
                 add(request);
                 break;
+            case "addV3" :
+                addV3(request);
+                break;
             case  "validate" :
                 validate(request);
+                break;
+            case  "validateV2" :
+                validateV2(request);
                 break;
             case "download" :
                 download(request);
@@ -73,8 +79,19 @@ public class CertificationActor extends BaseActor {
         sender().tell(response, self());
     }
 
+    private void addV3(Request request) throws BaseException {
+        String id = certService.addV3(request, certBackgroundActorRef);
+        Response response = new Response();
+        response.put(JsonKeys.ID, id);
+        sender().tell(response, self());
+    }
+
     private void validate(Request request) throws BaseException {
         sender().tell(certService.validate(request), self());
+    }
+
+    private void validateV2(Request request) throws BaseException {
+        sender().tell(certService.validateV2(request), self());
     }
 
     private void download(Request request) throws BaseException
