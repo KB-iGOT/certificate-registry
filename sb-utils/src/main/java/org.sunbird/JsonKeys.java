@@ -92,7 +92,6 @@ public class JsonKeys {
     public static final String TRAINING = "training";
     public static final String X_AUTHENTICATED_USER_TOKEN = "x-authenticated-user-token";
     public static final String X_AUTHENTICATED_FOR = "x-authenticated-for";
-    public static final String QR_CODE_DATA = "qrcodedata";
     public static final String DYNAMIC_GENERATION = "dynamicGeneration";
     public static final String VERSION_3 = "v3";
     public static final String CERT_ADD_V3 = "addV3";

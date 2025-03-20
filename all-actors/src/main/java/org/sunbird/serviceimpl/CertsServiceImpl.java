@@ -174,7 +174,6 @@ public class CertsServiceImpl implements ICertService {
                 .setRecipient(getCompositeReciepientObject(certReqAddMap))
                 .setRelated((Map)certReqAddMap.get(JsonKeys.RELATED))
                 .setReason((String)certReqAddMap.get(JsonKeys.REASON))
-                .setQrCodeData((Map)certReqAddMap.get(JsonKeys.QR_CODE_DATA))
                 .build();
         logger.info("CertsServiceImpl:getCertificate:certificate object formed.");
         return certificate;

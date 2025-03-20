@@ -92,7 +92,6 @@ public class CertificateV2 {
 
 
         private String id;
-        private Map<String, Object> qrCodeData;
         private Recipient recipient;
         private Map<String, Object> data;
         private Map<String, Object> related;
@@ -128,15 +127,6 @@ public class CertificateV2 {
             return this;
         }
 
-        public Map<String, Object> getQrCodeData() {
-            return qrCodeData;
-        }
-
-        public Builder setQrCodeData(Map<String, Object> qrCodeData) {
-            this.qrCodeData = qrCodeData;
-            return this;
-        }
-
         public Builder setRelated(Map<String, Object> related) {
             this.related = related;
             return this;
@@ -165,8 +155,4 @@ public class CertificateV2 {
 
         }
     }
-
-
-
-
 }
