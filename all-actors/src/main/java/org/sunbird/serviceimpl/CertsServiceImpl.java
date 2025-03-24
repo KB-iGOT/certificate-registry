@@ -79,7 +79,6 @@ public class CertsServiceImpl implements ICertService {
 
     @Override
     public String addV3(Request request, ActorRef certBackgroundActorRef) throws BaseException {
-        logger.info("This is v3" + request.getRequest());
         Map<String,Object> reqMap = request.getRequest();
         if(isPresentRecipientIdAndCertId(request)){
             validateCertAndRecipientId(reqMap);
@@ -146,10 +145,9 @@ public class CertsServiceImpl implements ICertService {
         Map<String,Object>recordMap= requestMapper.convertValue(certificate,Map.class);
         return CertificateUtil.insertRecord(recordMap, certBackgroundActorRef);
     }
-
     private Response processRecordV2(Map<String, Object> certReqAddMap, String version, ActorRef certBackgroundActorRef) throws BaseException {
-        CertificateV2 certificate = getCertificateV2(certReqAddMap);
-        Map<String, Object> recordMap = requestMapper.convertValue(certificate, Map.class);
+        CertificateV2 certificate=getCertificateV2(certReqAddMap);
+        Map<String,Object>recordMap= requestMapper.convertValue(certificate,Map.class);
         return CertificateUtil.insertRecordV2(recordMap, certBackgroundActorRef);
     }
     private Certificate getCertificate(Map<String, Object> certReqAddMap) {
