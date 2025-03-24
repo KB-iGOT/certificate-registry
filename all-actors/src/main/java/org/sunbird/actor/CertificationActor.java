@@ -81,6 +81,7 @@ public class CertificationActor extends BaseActor {
 
     private void addV3(Request request) throws BaseException {
         String id = certService.addV3(request, certBackgroundActorRef);
+        logger.info("Inside V3 method");
         Response response = new Response();
         response.put(JsonKeys.ID, id);
         sender().tell(response, self());
