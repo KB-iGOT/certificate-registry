@@ -96,7 +96,7 @@ public class JsonKeys {
     public static final String VERSION_3 = "v3";
     public static final String CERT_ADD_V3 = "addV3";
     public static final String CERT_VALIDATE_V2 = "validateV2";
-    public static final String CERT_ALIAS_V2 ="test_certs";
+    public static final String CERT_ALIAS_V2 ="certs_v2";
     public static final String CERT_REGISTRY_V2 = "cert_registry_v2";
 
 
