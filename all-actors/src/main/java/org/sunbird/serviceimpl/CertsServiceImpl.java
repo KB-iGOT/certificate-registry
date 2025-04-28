@@ -85,7 +85,7 @@ public class CertsServiceImpl implements ICertService {
             deleteOldCertificateV2((String) reqMap.get(JsonKeys.OLD_ID),certBackgroundActorRef);
         }
         Map<String, Object> certAddReqMap = request.getRequest();
-        assureUniqueCertId((String) certAddReqMap.get(JsonKeys.ID));
+        assureUniqueCertIdV2((String) certAddReqMap.get(JsonKeys.ID));
         processRecordV2(certAddReqMap,(String) request.getContext().get(JsonKeys.VERSION), certBackgroundActorRef);
         logger.info("CertsServiceImpl:add:record successfully processed with request:"+certAddReqMap.get(JsonKeys.ID));
         return (String)certAddReqMap.get(JsonKeys.ID);
@@ -134,6 +134,15 @@ public class CertsServiceImpl implements ICertService {
             throw new BaseException(IResponseMessage.INVALID_REQUESTED_DATA, getLocalizedMessage(IResponseMessage.ID_ALREADY_EXISTS,null), ResponseCode.CLIENT_ERROR.getCode());
         }
         logger.info("CertificateActor:addCertificate:successfully certId not found in records creating new record");
+    }
+
+    private void assureUniqueCertIdV2(String certificatedId) throws BaseException {
+        if (CertificateUtil.isIdPresentV2(certificatedId)) {
+            logger.error(
+                    "CertificateActor:addCertificateV2:provided certificateId exists in record:" + certificatedId);
+            throw new BaseException(IResponseMessage.INVALID_REQUESTED_DATA, getLocalizedMessage(IResponseMessage.ID_ALREADY_EXISTS,null), ResponseCode.CLIENT_ERROR.getCode());
+        }
+        logger.info("CertificateActor:addCertificateV2:successfully certId not found in records creating new record");
     }
 
 

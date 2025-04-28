@@ -58,6 +58,16 @@ public class CertificateUtil {
         return false;
     }
 
+    public static boolean isIdPresentV2(String certificateId) {
+        logger.info("CertificateUtil:V3isIdPresent:get id to search in ES:"+certificateId);
+        Map<String,Object> response = (Map)ElasticSearchHelper.getResponseFromFuture(elasticSearchService.getDataByIdentifier(JsonKeys.CERT_ALIAS_V2,certificateId));
+        if (MapUtils.isNotEmpty(response)) {
+            return true;
+        }
+        logger.info("CertificateUtilV3:isIdPresent: id not found");
+        return false;
+    }
+
     public static Response getCertRecordByID(String id) throws BaseException {
         return cassandraOperation.getRecordById(JsonKeys.SUNBIRD,JsonKeys.CERT_REGISTRY,id);
     }
