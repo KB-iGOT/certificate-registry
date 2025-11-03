@@ -166,14 +166,14 @@ public class CertificateUtil {
         }
         Response response = cassandraOperation.insertRecord(JsonKeys.SUNBIRD,JsonKeys.CERT_REGISTRY_V2,certMap);
         logger.info("CertificateUtil:insertRecord: record successfully inserted with id"+certAddReqMap.get(JsonKeys.ID));
-        //index data to ES
-        Request req = new Request();
+        //index data to ES commenting out a code for Dynamic certificate Generation Logic
+        /*Request req = new Request();
         RequestParams params = new RequestParams();
         params.setMsgid(MDC.get(JsonKeys.REQUEST_MESSAGE_ID));
         req.setParams(params);
         req.setOperation(ActorOperations.ADD_CERT_ES_V2.getOperation());
         req.getRequest().put(JsonKeys.REQUEST,certAddReqMap);
-        certBackgroundActorRef.tell(req, ActorRef.noSender());
+        certBackgroundActorRef.tell(req, ActorRef.noSender());*/
         return response;
 
     }
