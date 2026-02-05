@@ -215,6 +215,9 @@ public class CertificateUtil {
         return localizer.getMessage(key, locale);
     }
 
+    public static Response getAchievementRecordByID(String id) throws BaseException {
+        return cassandraOperation.getRecordById(JsonKeys.SUNBIRD,JsonKeys.MILESTONE_ACHIEVEMENT_REGISTRY,id);
+    }
 }
 
 

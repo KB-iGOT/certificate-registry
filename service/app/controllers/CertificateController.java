@@ -195,4 +195,14 @@ public class CertificateController extends BaseController {
       }, JsonKeys.SEARCH_V2);
   }
 
+    public CompletionStage<Result> validateAchievement(Http.Request httpRequest)
+    {
+        IRequestValidator requestValidator=new CertValidateRequestValidator();
+        return handleRequest(certificationActorRef, httpRequest,
+                request -> {
+                    Request req = (Request) request;
+                    requestValidator.validate(req);
+                    return null;
+                }, JsonKeys.VALIDATE_ACHIEVEMENT);
+    }
 }
