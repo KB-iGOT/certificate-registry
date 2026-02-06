@@ -40,4 +40,6 @@ public interface ICertService{
     
     Response searchV2(Request request) throws BaseException;
 
+    Response validateAchievement(Request request) throws BaseException;
+
 }
