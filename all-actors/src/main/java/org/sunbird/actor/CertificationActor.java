@@ -67,6 +67,9 @@ public class CertificationActor extends BaseActor {
             case "searchV2":
                 searchV2(request);
                 break;
+            case  "validateAchievement" :
+                validateAchievement(request);
+                break;
             default:
                 onReceiveUnsupportedMessage("CertificationActor");
         }
@@ -121,5 +124,9 @@ public class CertificationActor extends BaseActor {
 
     private void downloadV2(Request request) throws BaseException {
         sender().tell(certService.downloadV2(request), self());
+    }
+
+    private void validateAchievement(Request request) throws BaseException {
+        sender().tell(certService.validateAchievement(request), self());
     }
 }

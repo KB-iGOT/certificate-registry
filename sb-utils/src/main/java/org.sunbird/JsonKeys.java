@@ -98,6 +98,8 @@ public class JsonKeys {
     public static final String CERT_VALIDATE_V2 = "validateV2";
     public static final String CERT_ALIAS_V2 ="certs_v2";
     public static final String CERT_REGISTRY_V2 = "cert_registry_v2";
+    public static final String VALIDATE_ACHIEVEMENT = "validateAchievement";
+    public static final String MILESTONE_ACHIEVEMENT_REGISTRY  = "milestone_achievement_registry";
 
 
 
